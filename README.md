@@ -13,3 +13,7 @@ npm run dev
 ## Database Migration
 
 php artisan migrate
+
+## Install Passport
+
+php artisan passport:install
