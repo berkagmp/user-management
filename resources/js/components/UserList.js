@@ -77,7 +77,7 @@ class UserList extends Component {
                                 <td width="200">First Name</td>
                                 <td width="200">Last Name</td>
                                 <td
-                                    width="100"
+                                    width="300"
                                     className={
                                         this.state.is_admin == 1 ? "" : "hidden"
                                     }
@@ -116,7 +116,8 @@ class User extends React.Component {
             }
         };
 
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleUpdate = this.handleUpdate.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
         this.handleFirstName = this.handleFirstName.bind(this);
         this.handleLastName = this.handleLastName.bind(this);
     }
@@ -147,7 +148,7 @@ class User extends React.Component {
             }
         }));
     }
-    handleSubmit(e) {
+    handleUpdate(e) {
         e.preventDefault();
         let userData = this.state.user;
 
@@ -158,43 +159,58 @@ class User extends React.Component {
         axios
             .put("/api/users/" + userData.id, userData, config)
             .then(response => {
-                console.log(response);
                 return response;
             })
             .then(json => {
                 if (json.data.status == "success") {
-                    this.setState({ success: true });
+                    this.setState({ success: true, message: "Updated" });
                     setTimeout(() => {
                         this.setState({ show: false, success: false });
                         this.props.action();
                     }, 2000);
                 } else {
-                    console.log("ERROR");
                     throw new Error("Error");
                 }
             })
             .catch(error => {
-                console.log(error);
-                if (error.response) {
-                    let err = error.response.data;
-                    this.setState({
-                        error: err.message,
-                        errorMessage: err.errors,
-                        formSubmitting: false
-                    });
-                } else if (error.request) {
-                    let err = error.request;
-                    this.setState({
-                        error: err,
-                        formSubmitting: false
-                    });
+                this.setState({
+                    error: true,
+                    errorMessage: "Something Went Wrong.",
+                    formSubmitting: false
+                });
+            })
+            .finally(this.setState({ error: "" }));
+    }
+    handleDelete(e) {
+        e.preventDefault();
+        let userData = this.state.user;
+
+        const config = {
+            headers: { Authorization: `Bearer ${this.state.token}` }
+        };
+
+        axios
+            .delete("/api/users/" + userData.id, config)
+            .then(response => {
+                return response;
+            })
+            .then(json => {
+                if (json.status == 204) {
+                    this.setState({ success: true, message: "Deleted" });
+                    setTimeout(() => {
+                        this.setState({ show: false, success: false });
+                        this.props.action();
+                    }, 1000);
                 } else {
-                    let err = error.message;
-                    this.setState({
-                        error: err,
-                        formSubmitting: false
-                    });
+                    throw new Error("Error");
                 }
+            })
+            .catch(error => {
+                this.setState({
+                    error: true,
+                    errorMessage: "Something Went Wrong.",
+                    formSubmitting: false
+                });
             })
             .finally(this.setState({ error: "" }));
     }
@@ -211,7 +227,7 @@ class User extends React.Component {
                     <td>{this.props.user.last_name}</td>
                     <td className={this.props.is_admin == 1 ? "" : "hidden"}>
                         <button
-                            className="btn btn-warning"
+                            className="btn btn-warning btn-sm"
                             onClick={this.editshow}
                         >
                             {this.state.show ? "CLOSE" : "OPEN"}
@@ -227,7 +243,7 @@ class User extends React.Component {
                                 persistOnHover={false}
                             >
                                 <h5 className={"alert alert-success"}>
-                                    Updated
+                                    {this.state.message}
                                 </h5>
                             </FlashMessage>
                         ) : (
@@ -261,10 +277,18 @@ class User extends React.Component {
                     <td>
                         <button
                             type="submit"
-                            className="btn btn-primary"
-                            onClick={this.handleSubmit}
+                            className="btn btn-primary btn-sm"
+                            onClick={this.handleUpdate}
                         >
                             Update
+                        </button>
+                        &nbsp;&nbsp;
+                        <button
+                            type="submit"
+                            className="btn btn-danger btn-sm"
+                            onClick={this.handleDelete}
+                        >
+                            Delete
                         </button>
                     </td>
                 </tr>
