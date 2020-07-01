@@ -30,4 +30,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password'
     ];
+
+    public function isAdmin()
+    {
+        return ($this->is_admin == 1);
+    }
 }

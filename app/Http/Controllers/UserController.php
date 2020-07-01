@@ -6,6 +6,7 @@ use App\Http\Traits\TokenTrait;
 use App\User;
 use Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class UserController extends ResponseController
@@ -29,8 +30,12 @@ class UserController extends ResponseController
             'last_name' => 'required|max:50',
         ]);
 
-        $user = $this->get_user($user_id);
-        $user->update($data);
+        if(Auth::user()->isAdmin()){
+            $user = $this->get_user($user_id);
+            $user->update($data);
+        }else{
+            return $this->get_http_response("error", null, self::HTTP_UNAUTHORIZED);
+        }
 
         return $this->get_http_response("success", $user, self::HTTP_OK);
     }
